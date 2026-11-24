@@ -19,8 +19,8 @@ docker run --rm -t -v "$PWD:/work" ghcr.io/kaspernissen/flickr-find-me \
 When it finishes, open `runs/<album-id>/results.html`. The full-size photos are
 in `runs/<album-id>/matches/`.
 
-- A 3,500-photo album takes about 20 minutes on a laptop. If you stop it, run
-  the same command again and it carries on where it left off.
+- If you stop it, run the same command again and it carries on where it left
+  off.
 - Getting strangers? Raise `--match` (default `0.45`). Missing photos? Lower it.
 - Photos it isn't sure about are listed under "Maybe". Download one with
   `--fetch <photo-id>`.
