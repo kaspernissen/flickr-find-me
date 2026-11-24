@@ -18,6 +18,12 @@ class NoFaceError(Exception):
         self.path = path
 
 
+class UnreadableImageError(Exception):
+    def __init__(self, path: Path):
+        super().__init__(f"Cannot read image {path}")
+        self.path = path
+
+
 class FaceEngine:
     def __init__(self) -> None:
         from insightface.app import FaceAnalysis
@@ -30,7 +36,7 @@ class FaceEngine:
 
         img = cv2.imread(str(image_path))
         if img is None:
-            return []
+            raise UnreadableImageError(image_path)
         return [
             Face(
                 bbox=tuple(float(v) for v in f.bbox),

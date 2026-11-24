@@ -120,3 +120,53 @@ def test_partial_original_is_not_treated_as_existing(env):
     cli.main(args)
     assert len(calls["orig"]) == 1
     assert (out / "matches" / "title_1_1.jpg").exists()
+
+
+def test_empty_album_exits_2(env, monkeypatch, capsys):
+    args, *_ = env
+    monkeypatch.setattr(cli, "list_album", lambda url, size: [])
+    assert cli.main(args) == 2
+    assert "no photos" in capsys.readouterr().err.lower()
+
+
+def test_listing_error_exits_2(env, monkeypatch, capsys):
+    args, *_ = env
+
+    def boom(url, size):
+        raise RuntimeError("gallery-dl: Requested album could not be found")
+
+    monkeypatch.setattr(cli, "list_album", boom)
+    assert cli.main(args) == 2
+    assert "could not be found" in capsys.readouterr().err
+
+
+def test_detect_error_marks_failed_and_continues(env, monkeypatch):
+    args, out, _, _ = env
+
+    class Flaky(FakeEngine):
+        def detect(self, path):
+            if path.stem == "2":
+                raise ValueError("corrupt image")
+            return super().detect(path)
+
+    monkeypatch.setattr(cli, "FaceEngine", Flaky)
+    assert cli.main(args) == 0
+    assert cli.Cache(out / "cache.sqlite").counts() == {"done": 2, "failed": 1}
+    assert (out / "results.html").exists()
+
+
+def test_original_error_does_not_abort(env, monkeypatch):
+    args, out, _, _ = env
+
+    def bad(page):
+        raise OSError("File name too long")
+
+    monkeypatch.setattr(cli, "original_url", bad)
+    assert cli.main(args) == 0
+    assert (out / "results.html").exists()
+
+
+def test_original_filename_truncates_long_titles():
+    name = cli.original_filename(Photo("55649818708", "x" * 400, "", ""), "jpg")
+    assert len(name.encode()) <= 200
+    assert name.endswith("_55649818708.jpg")

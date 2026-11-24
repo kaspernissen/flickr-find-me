@@ -35,3 +35,9 @@ def test_album_id_rejects_non_album():
 @pytest.mark.network
 def test_list_album_real():
     assert len(list_album(KUBECON, 1024)) == 3537
+
+
+def test_parse_listing_raises_on_gallery_dl_error():
+    entries = [[-1, {"error": "NotFoundError", "message": "Requested album could not be found"}]]
+    with pytest.raises(RuntimeError, match="Requested album could not be found"):
+        parse_listing(entries)

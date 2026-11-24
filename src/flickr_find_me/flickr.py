@@ -27,6 +27,9 @@ def album_id(album_url: str) -> str:
 def parse_listing(entries: list) -> list[Photo]:
     photos = []
     for entry in entries:
+        if entry[0] == -1:  # gallery-dl reports extractor errors in-band, exit code 0
+            err = entry[1]
+            raise RuntimeError(f"gallery-dl: {err.get('error')}: {err.get('message')}")
         if entry[0] != 3:
             continue
         _, url, meta = entry

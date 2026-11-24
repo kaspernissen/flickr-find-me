@@ -54,7 +54,10 @@ def test_same_face_scores_high(engine, group_photo, tmp_path):
     assert float(engine.reference(group_photo) @ engine.reference(mirrored)) > 0.6
 
 
-def test_unreadable_image_has_no_faces(engine, tmp_path):
+def test_unreadable_image_raises(engine, tmp_path):
+    from flickr_find_me.faces import UnreadableImageError
+
     p = tmp_path / "junk.jpg"
-    p.write_bytes(b"not an image")
-    assert engine.detect(p) == []
+    p.write_bytes(b"<html>502</html>")
+    with pytest.raises(UnreadableImageError):
+        engine.detect(p)

@@ -10,14 +10,14 @@ import httpx
 
 from .cache import Cache
 from .download import DownloadError, download, make_client
-from .faces import FaceEngine, NoFaceError
+from .faces import FaceEngine, NoFaceError, UnreadableImageError
 from .flickr import Photo, album_id, list_album, original_url
 from .match import classify
 from .report import render
 
 
 def original_filename(photo: Photo, ext: str) -> str:
-    stem = re.sub(r"[^A-Za-z0-9._+-]", "_", photo.title)
+    stem = re.sub(r"[^A-Za-z0-9._+-]", "_", photo.title)[:150]
     return f"{stem}_{photo.id}.{ext}" if stem else f"{photo.id}.{ext}"
 
 
@@ -37,7 +37,7 @@ def _fetch_original(photo: Photo, matches: Path, client: httpx.Client) -> Path |
         url = original_url(photo.page_url)
         ext = url.rsplit(".", 1)[-1].split("?")[0] or "jpg"
         return download(url, matches / original_filename(photo, ext), client)
-    except (DownloadError, RuntimeError) as e:
+    except Exception as e:  # one bad original must not abort the run or the report
         print(f"warning: could not fetch original of {photo.id}: {e}", file=sys.stderr)
         return None
 
@@ -63,15 +63,18 @@ def _scan(cache: Cache, engine, scans: Path, client, workers: int, keep: bool, l
         while inflight:
             photo, fut = inflight.pop(0)
             submit_next()
+            path = scans / f"{photo.id}.jpg"
             try:
-                path = fut.result()
-            except DownloadError as e:
-                print(f"warning: {e}", file=sys.stderr)
+                fut.result()
+                faces = engine.detect(path)
+            except Exception as e:  # mark this photo failed (retried next run), keep going
+                print(f"warning: photo {photo.id}: {e}", file=sys.stderr)
                 cache.mark_failed(photo.id)
                 continue
-            cache.save_faces(photo.id, engine.detect(path))
-            if not keep:
-                path.unlink(missing_ok=True)
+            finally:
+                if not keep:
+                    path.unlink(missing_ok=True)
+            cache.save_faces(photo.id, faces)
             done += 1
             if done % 50 == 0:
                 print(f"  {done}/{total}")
@@ -104,7 +107,7 @@ def main(argv: list[str] | None = None) -> int:
     engine = FaceEngine()
     try:
         refs = [engine.reference(p) for p in args.me]
-    except NoFaceError as e:
+    except (NoFaceError, UnreadableImageError) as e:
         print(e, file=sys.stderr)
         return 2
 
@@ -119,7 +122,15 @@ def main(argv: list[str] | None = None) -> int:
                     continue
                 _fetch_original(photo, matches, client)
         else:
-            cache.upsert_photos(list_album(args.album_url, args.size))
+            try:
+                photos = list_album(args.album_url, args.size)
+            except RuntimeError as e:
+                print(f"Could not list album: {e}", file=sys.stderr)
+                return 2
+            if not photos:
+                print("The album has no photos (or is not public).", file=sys.stderr)
+                return 2
+            cache.upsert_photos(photos)
             try:
                 _scan(cache, engine, scans, client, args.workers, args.keep_downloads, args.limit)
             except KeyboardInterrupt:
