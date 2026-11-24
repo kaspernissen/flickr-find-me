@@ -31,3 +31,7 @@ dev = [
 [tool.pytest.ini_options]
 addopts = "-m 'not network and not model'"
 markers = ["network: hits Flickr", "model: loads InsightFace models"]
+
+[tool.uv]
+# insightface depends on opencv-python (needs X11/GL libs); the headless build provides the same cv2.
+override-dependencies = ["opencv-python; sys_platform == 'never'"]

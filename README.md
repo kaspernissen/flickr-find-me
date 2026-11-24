@@ -5,26 +5,41 @@ Find every photo of you in a public Flickr album and download the originals.
 Everything runs locally: gallery-dl lists the album (no Flickr API key needed),
 InsightFace detects and compares faces on your machine.
 
-## Install
+## Quick start (Docker)
 
-Requires [uv](https://docs.astral.sh/uv/).
-
-```sh
-uv sync
-```
-
-The face model (~280 MB) downloads to `~/.insightface` on first run.
-
-## Use
+Put 3–5 photos of yourself in a folder, `cd` into it, and run:
 
 ```sh
-uv run flickr-find-me \
+docker run --rm -v "$PWD:/work" DOCKERHUB_USER/flickr-find-me \
   "https://www.flickr.com/photos/143247548@N03/albums/72177720336408231" \
   --me me1.jpg me2.jpg me3.jpg
 ```
 
+Swap in any public Flickr album URL. Results land in `./runs/<album-id>/`, and
+`/work` in the output means your current folder.
+
+On Linux, add `--user "$(id -u):$(id -g)"` so the results are owned by you
+rather than root. The image (~1 GB) includes the face models and runs on
+Apple Silicon and x86.
+
+## Without Docker
+
+With [uv](https://docs.astral.sh/uv/):
+
+```sh
+uvx --from git+https://github.com/kaspernissen/flickr-find-me flickr-find-me \
+  "<album-url>" --me me1.jpg me2.jpg me3.jpg
+```
+
+Or from a clone: `uv sync`, then `uv run flickr-find-me …`. Without Docker, the
+face model (~280 MB) downloads to `~/.insightface` on first run.
+
+## How it works
+
 Use 3–5 reference photos of yourself with different angles and lighting. In
 each one, the tool uses the largest face.
+
+A full album of about 3,500 photos takes roughly an hour on a laptop CPU.
 
 Output goes to `runs/<album-id>/`:
 

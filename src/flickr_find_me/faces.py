@@ -1,5 +1,6 @@
 """Face detection and embedding with InsightFace."""
 
+import os
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -28,7 +29,8 @@ class FaceEngine:
     def __init__(self) -> None:
         from insightface.app import FaceAnalysis
 
-        self._app = FaceAnalysis(name="buffalo_l", providers=["CPUExecutionProvider"])
+        root = os.environ.get("FLICKR_FIND_ME_MODELS", "~/.insightface")
+        self._app = FaceAnalysis(name="buffalo_l", root=root, providers=["CPUExecutionProvider"])
         self._app.prepare(ctx_id=-1, det_size=(640, 640))
 
     def detect(self, image_path: Path) -> list[Face]:
