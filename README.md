@@ -10,7 +10,7 @@ InsightFace detects and compares faces on your machine.
 Put 3–5 photos of yourself in a folder, `cd` into it, and run:
 
 ```sh
-docker run --rm -v "$PWD:/work" DOCKERHUB_USER/flickr-find-me \
+docker run --rm -v "$PWD:/work" kaspernissen/flickr-find-me \
   "https://www.flickr.com/photos/143247548@N03/albums/72177720336408231" \
   --me me1.jpg me2.jpg me3.jpg
 ```
@@ -85,3 +85,7 @@ Only a different `--size` needs a fresh output dir (`--out`) to rescan.
 uv run pytest                      # fast unit tests
 uv run pytest -m "network or model"  # hits Flickr / loads the face model
 ```
+
+## License
+
+MIT

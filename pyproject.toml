@@ -3,6 +3,7 @@ name = "flickr-find-me"
 version = "0.1.0"
 description = "Find photos of yourself in a Flickr album"
 readme = "README.md"
+license = "MIT"
 authors = [
     { name = "Kasper Borg Nissen", email = "kaspernissen@gmail.com" }
 ]
