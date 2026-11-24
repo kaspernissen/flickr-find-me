@@ -1,7 +1,7 @@
 [project]
 name = "flickr-find-me"
 version = "0.1.0"
-description = "Find photos of yourself in a Flickr album"
+description = "Find yourself in a Flickr event album and download the originals"
 readme = "README.md"
 license = "MIT"
 authors = [
