@@ -134,6 +134,19 @@ def _scan(cache: Cache, engine, scans: Path, client, refs, match_t: float,
     return failed
 
 
+def _download_originals(photos: list[Photo], matches: Path, client) -> None:
+    todo = [p for p in photos if not _existing_original(matches, p.id)]
+    if not todo:
+        return
+    with tqdm(
+        total=len(todo), dynamic_ncols=True,
+        bar_format="Downloading originals {bar} {n_fmt}/{total_fmt}  {elapsed}<{remaining}",
+    ) as bar:
+        for p in todo:
+            _fetch_original(p, matches, client)
+            bar.update(1)
+
+
 def _summary(results, out: Path, matches: Path, report: Path, failed: int) -> None:
     hits = [r for r in results if r.kind == "match"]
     maybes = len(results) - len(hits)
@@ -259,9 +272,9 @@ def main(argv: list[str] | None = None) -> int:
 
         results = classify(cache.all_faces(), refs, cache.photo, args.match, args.maybe)
         if not args.fetch:
-            for r in results:
-                if r.kind == "match":
-                    _fetch_original(r.photo, matches, client)
+            _download_originals(
+                [r.photo for r in results if r.kind == "match"], matches, client
+            )
 
     originals = {}
     for r in results:

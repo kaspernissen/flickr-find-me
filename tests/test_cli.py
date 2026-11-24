@@ -277,3 +277,12 @@ def test_listing_error_fails_before_model_loads(env, monkeypatch):
     monkeypatch.setattr(cli, "list_album", boom)
     monkeypatch.setattr(cli, "FaceEngine", no_model)
     assert cli.main(args) == 2
+
+
+def test_originals_download_is_shown(env, capsys):
+    args, *_ = env
+    cli.main(args)
+    err = capsys.readouterr().err
+    assert "Downloading originals" in err
+    cli.main(args)  # already downloaded: no second bar
+    assert "Downloading originals" not in capsys.readouterr().err
