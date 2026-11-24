@@ -10,6 +10,16 @@ class DownloadError(Exception):
     pass
 
 
+def make_client() -> httpx.Client:
+    # Flickr's image CDN answers httpx's default client with 502s; a client
+    # that names itself is served normally.
+    return httpx.Client(
+        timeout=30,
+        follow_redirects=True,
+        headers={"User-Agent": "flickr-find-me/0.1"},
+    )
+
+
 def download(url: str, dest: Path, client: httpx.Client, retries: int = 3) -> Path:
     part = dest.with_suffix(dest.suffix + ".part")
     last: Exception | None = None

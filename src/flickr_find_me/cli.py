@@ -9,7 +9,7 @@ from pathlib import Path
 import httpx
 
 from .cache import Cache
-from .download import DownloadError, download
+from .download import DownloadError, download, make_client
 from .faces import FaceEngine, NoFaceError
 from .flickr import Photo, album_id, list_album, original_url
 from .match import classify
@@ -109,7 +109,7 @@ def main(argv: list[str] | None = None) -> int:
         return 2
 
     cache = Cache(out / "cache.sqlite")
-    with httpx.Client(timeout=30, follow_redirects=True) as client:
+    with make_client() as client:
         if args.fetch:
             for pid in args.fetch:
                 try:

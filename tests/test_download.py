@@ -41,3 +41,11 @@ def test_download_raises_after_retries(tmp_path):
     with pytest.raises(DownloadError):
         download("https://x/a.jpg", dest, client)
     assert not dest.exists()
+
+
+def test_make_client_identifies_itself():
+    from flickr_find_me.download import make_client
+
+    with make_client() as c:
+        assert c.headers["user-agent"].startswith("flickr-find-me/")
+        assert c.follow_redirects
