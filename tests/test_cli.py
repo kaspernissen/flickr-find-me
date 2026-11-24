@@ -4,7 +4,7 @@ import pytest
 from flickr_find_me import cli
 from flickr_find_me.download import DownloadError
 from flickr_find_me.faces import Face, NoFaceError
-from flickr_find_me.flickr import Photo
+from flickr_find_me.flickr import Album, Photo
 
 ALBUM = "https://www.flickr.com/photos/o/albums/42"
 ME = np.array([1, 0], dtype=np.float32)
@@ -38,7 +38,7 @@ def env(tmp_path, monkeypatch):
         return dest
 
     photos = [Photo(i, f"title {i}", f"https://flickr/p/{i}/", f"scan:{i}") for i in "123"]
-    monkeypatch.setattr(cli, "list_album", lambda url, size: photos)
+    monkeypatch.setattr(cli, "list_album", lambda url, size: Album("Test Album", photos))
     monkeypatch.setattr(cli, "original_url", lambda page: f"orig:{page}x.jpg")
     monkeypatch.setattr(cli, "download", fake_download)
     monkeypatch.setattr(cli, "FaceEngine", FakeEngine)
@@ -124,7 +124,7 @@ def test_partial_original_is_not_treated_as_existing(env):
 
 def test_empty_album_exits_2(env, monkeypatch, capsys):
     args, *_ = env
-    monkeypatch.setattr(cli, "list_album", lambda url, size: [])
+    monkeypatch.setattr(cli, "list_album", lambda url, size: Album("Empty", []))
     assert cli.main(args) == 2
     assert "no photos" in capsys.readouterr().err.lower()
 
@@ -170,3 +170,110 @@ def test_original_filename_truncates_long_titles():
     name = cli.original_filename(Photo("55649818708", "x" * 400, "", ""), "jpg")
     assert len(name.encode()) <= 200
     assert name.endswith("_55649818708.jpg")
+
+
+def test_positional_images(env):
+    args, out, _, _ = env
+    assert cli.main([ALBUM, args[2], "--out", str(out)]) == 0
+    assert (out / "results.html").exists()
+
+
+def test_default_uses_images_in_current_folder(env, tmp_path, monkeypatch):
+    monkeypatch.chdir(tmp_path)  # contains me.jpg
+    assert cli.main([ALBUM]) == 0
+    assert (tmp_path / "runs" / "42" / "results.html").exists()
+
+
+def test_no_images_exits_2(env, tmp_path, monkeypatch, capsys):
+    empty = tmp_path / "empty"
+    empty.mkdir()
+    monkeypatch.chdir(empty)
+    assert cli.main([ALBUM]) == 2
+    assert "No photos of you" in capsys.readouterr().err
+
+
+def test_summary_output(env, capsys):
+    args, *_ = env
+    cli.main(args)
+    out, err = capsys.readouterr()
+    assert "Test Album" in out
+    assert "Found you in 1 photo" in out
+    assert "title 1" in out
+    assert "Results:" in out
+    assert "warning" not in err.lower()
+    assert "{" not in out  # no raw dicts
+
+
+def test_failed_download_reported_once(env, capsys):
+    args, _, _, fail_once = env
+    fail_once.add("scan:2")
+    cli.main(args)
+    out = capsys.readouterr().out
+    assert "1 photo failed to download" in out
+
+
+def test_report_uses_album_title(env):
+    args, out, _, _ = env
+    cli.main(args)
+    assert "Test Album" in (out / "results.html").read_text()
+
+
+@pytest.fixture
+def no_network_or_model(monkeypatch):
+    def boom(*a, **k):
+        raise AssertionError("should have failed before this")
+
+    monkeypatch.setattr(cli, "list_album", boom)
+    monkeypatch.setattr(cli, "FaceEngine", boom)
+
+
+def test_bad_album_url_fails_fast(no_network_or_model, capsys):
+    assert cli.main(["https://evil.com/?flickr.com/photos/a/albums/1", "me.jpg"]) == 2
+    assert "Flickr album" in capsys.readouterr().err
+
+
+def test_missing_reference_file_fails_fast(no_network_or_model, tmp_path, capsys):
+    assert cli.main([ALBUM, str(tmp_path / "nope.jpg")]) == 2
+    assert "nope.jpg" in capsys.readouterr().err
+
+
+def test_non_image_reference_fails_fast(no_network_or_model, tmp_path, capsys):
+    notes = tmp_path / "notes.txt"
+    notes.write_text("hi")
+    assert cli.main([ALBUM, str(notes)]) == 2
+    assert "notes.txt" in capsys.readouterr().err
+
+
+@pytest.mark.parametrize("flags", [
+    ["--match", "1.5"],
+    ["--match", "-0.1"],
+    ["--maybe", "nan"],
+    ["--match", "0.3", "--maybe", "0.4"],
+    ["--size", "50"],
+    ["--size", "10000"],
+    ["--workers", "0"],
+    ["--workers", "100"],
+    ["--fetch", "abc"],
+    ["--fetch", "../1"],
+    ["--limit", "0"],
+])
+def test_bad_flags_rejected(no_network_or_model, tmp_path, flags):
+    me = tmp_path / "me.jpg"
+    me.write_bytes(b"x")
+    with pytest.raises(SystemExit) as e:
+        cli.main([ALBUM, str(me), *flags])
+    assert e.value.code == 2
+
+
+def test_listing_error_fails_before_model_loads(env, monkeypatch):
+    args, *_ = env
+
+    def boom(url, size):
+        raise RuntimeError("gallery-dl: NotFoundError: Requested album could not be found")
+
+    def no_model():
+        raise AssertionError("model loaded before album was listed")
+
+    monkeypatch.setattr(cli, "list_album", boom)
+    monkeypatch.setattr(cli, "FaceEngine", no_model)
+    assert cli.main(args) == 2

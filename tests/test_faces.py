@@ -61,3 +61,16 @@ def test_unreadable_image_raises(engine, tmp_path):
     p.write_bytes(b"<html>502</html>")
     with pytest.raises(UnreadableImageError):
         engine.detect(p)
+
+
+def test_engine_is_quiet(capfd, group_photo):
+    import warnings
+
+    from flickr_find_me.faces import FaceEngine
+
+    with warnings.catch_warnings(record=True) as caught:
+        warnings.simplefilter("always")
+        FaceEngine().detect(group_photo)
+    out, err = capfd.readouterr()
+    assert out == "" and err == ""
+    assert not [w for w in caught if issubclass(w.category, FutureWarning)]

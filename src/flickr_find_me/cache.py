@@ -17,6 +17,7 @@ CREATE TABLE IF NOT EXISTS faces (
     photo_id TEXT, idx INTEGER, bbox TEXT, embedding BLOB,
     PRIMARY KEY (photo_id, idx)
 );
+CREATE TABLE IF NOT EXISTS meta (key TEXT PRIMARY KEY, value TEXT);
 """
 
 
@@ -79,6 +80,14 @@ class Cache:
         if row is None:
             raise KeyError(photo_id)
         return Photo(*row)
+
+    def set_meta(self, key: str, value: str) -> None:
+        with self.conn:
+            self.conn.execute("INSERT OR REPLACE INTO meta VALUES (?, ?)", (key, value))
+
+    def get_meta(self, key: str) -> str | None:
+        row = self.conn.execute("SELECT value FROM meta WHERE key = ?", (key,)).fetchone()
+        return row[0] if row else None
 
     def counts(self) -> dict[str, int]:
         return dict(self.conn.execute("SELECT status, COUNT(*) FROM photos GROUP BY status"))

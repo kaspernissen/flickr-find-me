@@ -60,3 +60,9 @@ def test_save_faces_atomic(cache):
 def test_photo_lookup(cache):
     cache.upsert_photos([photo("7")])
     assert cache.photo("7") == photo("7")
+
+
+def test_meta_roundtrip(cache):
+    assert cache.get_meta("album_title") is None
+    cache.set_meta("album_title", "KubeCon")
+    assert cache.get_meta("album_title") == "KubeCon"

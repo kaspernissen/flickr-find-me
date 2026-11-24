@@ -199,7 +199,7 @@ wheels = [
 
 [[package]]
 name = "flickr-find-me"
-version = "0.1.0"
+version = "0.1.1"
 source = { editable = "." }
 dependencies = [
     { name = "gallery-dl" },
@@ -209,6 +209,7 @@ dependencies = [
     { name = "numpy", version = "2.5.5", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.12'" },
     { name = "onnxruntime" },
     { name = "opencv-python-headless" },
+    { name = "tqdm" },
 ]
 
 [package.dev-dependencies]
@@ -224,6 +225,7 @@ requires-dist = [
     { name = "numpy", specifier = ">=2.4.6" },
     { name = "onnxruntime", specifier = ">=1.32.0" },
     { name = "opencv-python-headless", specifier = ">=5.1.0.95" },
+    { name = "tqdm", specifier = ">=4.70.1" },
 ]
 
 [package.metadata.requires-dev]

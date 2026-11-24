@@ -8,20 +8,19 @@ machine, so your face isn't uploaded anywhere.
 
 ## Run it
 
-Put 3–5 photos of yourself in a folder, open a terminal there and run this with
-any public Flickr album link:
+Put 3–5 photos of yourself (and nothing else) in a folder, open a terminal
+there and run this with any public Flickr album link:
 
 ```sh
-docker run --rm -v "$PWD:/work" kaspernissen/flickr-find-me \
-  "https://www.flickr.com/photos/<user>/albums/<album-id>" \
-  --me me1.jpg me2.jpg me3.jpg
+docker run --rm -t -v "$PWD:/work" ghcr.io/kaspernissen/flickr-find-me \
+  "https://www.flickr.com/photos/<user>/albums/<album-id>"
 ```
 
 When it finishes, open `runs/<album-id>/results.html`. The full-size photos are
 in `runs/<album-id>/matches/`.
 
-- A 3,500-photo album takes about an hour. If you stop it, run the same command
-  again and it carries on where it left off.
+- Big albums take a while. If you stop it, run the same command again and it
+  carries on where it left off.
 - Getting strangers? Raise `--match` (default `0.45`). Missing photos? Lower it.
 - Photos it isn't sure about are listed under "Maybe". Download one with
   `--fetch <photo-id>`.

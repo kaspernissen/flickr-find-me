@@ -1,6 +1,9 @@
 """Face detection and embedding with InsightFace."""
 
+import contextlib
+import io
 import os
+import warnings
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -30,8 +33,9 @@ class FaceEngine:
         from insightface.app import FaceAnalysis
 
         root = os.environ.get("FLICKR_FIND_ME_MODELS", "~/.insightface")
-        self._app = FaceAnalysis(name="buffalo_l", root=root, providers=["CPUExecutionProvider"])
-        self._app.prepare(ctx_id=-1, det_size=(640, 640))
+        with contextlib.redirect_stdout(io.StringIO()):  # InsightFace prints model info
+            self._app = FaceAnalysis(name="buffalo_l", root=root, providers=["CPUExecutionProvider"])
+            self._app.prepare(ctx_id=-1, det_size=(640, 640))
 
     def detect(self, image_path: Path) -> list[Face]:
         import cv2
@@ -44,8 +48,14 @@ class FaceEngine:
                 bbox=tuple(float(v) for v in f.bbox),
                 embedding=np.asarray(f.normed_embedding, dtype=np.float32),
             )
-            for f in self._app.get(img)
+            for f in self._get(img)
         ]
+
+    def _get(self, img):
+        with warnings.catch_warnings():
+            # InsightFace calls a deprecated scikit-image API on every face.
+            warnings.simplefilter("ignore", FutureWarning)
+            return self._app.get(img)
 
     def reference(self, image_path: Path) -> np.ndarray:
         faces = self.detect(image_path)
