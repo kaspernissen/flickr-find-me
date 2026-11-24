@@ -19,6 +19,8 @@ docker run --rm -t -v "$PWD:/work" ghcr.io/kaspernissen/flickr-find-me \
 When it finishes, open `runs/<album-id>/results.html`. The full-size photos are
 in `runs/<album-id>/matches/`.
 
+- It uses every photo in the folder. To pick specific ones, list them after the
+  album link.
 - If you stop it, run the same command again and it carries on where it left
   off.
 - Getting strangers? Raise `--match` (default `0.45`). Missing photos? Lower it.
