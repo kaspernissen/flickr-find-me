@@ -28,6 +28,18 @@ in `runs/<album-id>/matches/`.
   `--fetch <photo-id>`.
 - On Linux, add `--user "$(id -u):$(id -g)"` after `docker run`.
 
+## How it works
+
+1. Lists the album with [gallery-dl](https://github.com/mikf/gallery-dl), so no
+   Flickr API key is needed.
+2. Downloads each photo at 1024px, finds the faces with
+   [InsightFace](https://github.com/deepinsight/insightface) and compares them
+   with your photos. Each image is deleted as soon as it's checked.
+3. Downloads the full-size original of every match and writes a results page.
+
+The face data is cached, so re-running with a different `--match` or other
+photos of you doesn't download anything again.
+
 ## Contributing
 
 Issues and pull requests are welcome. You'll need [uv](https://docs.astral.sh/uv/):
