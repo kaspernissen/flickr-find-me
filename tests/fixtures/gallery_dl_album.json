@@ -1,0 +1,83 @@
+[
+ [
+  2,
+  {
+   "album": {
+    "id": "72177720336408231",
+    "title": "KubeCon + CloudNativeCon North America 2026"
+   }
+  }
+ ],
+ [
+  3,
+  "https://live.staticflickr.com/65535/55649818708_faa1588ca4_b.jpg",
+  {
+   "id": 55649818708,
+   "title": "KC+CNC_NA_2026_TOP12_001",
+   "media": "photo",
+   "owner": {
+    "nsid": "143247548@N03",
+    "path_alias": "143247548@N03",
+    "username": "Cloud Native Computing Foundation"
+   },
+   "width": 1024,
+   "height": 683,
+   "url": "https://live.staticflickr.com/65535/55649818708_faa1588ca4_b.jpg",
+   "album": {
+    "id": "72177720336408231",
+    "title": "KubeCon + CloudNativeCon North America 2026"
+   }
+  }
+ ],
+ [
+  2,
+  {
+   "album": {
+    "id": "72177720336408231",
+    "title": "KubeCon + CloudNativeCon North America 2026"
+   }
+  }
+ ],
+ [
+  3,
+  "https://live.staticflickr.com/65535/55650110745_92c3f3e1c0_b.jpg",
+  {
+   "id": 55650110745,
+   "title": "KC+CNC_NA_2026_TOP12_002",
+   "media": "photo",
+   "owner": {
+    "nsid": "143247548@N03",
+    "path_alias": "143247548@N03",
+    "username": "Cloud Native Computing Foundation"
+   },
+   "width": 1024,
+   "height": 683,
+   "url": "https://live.staticflickr.com/65535/55650110745_92c3f3e1c0_b.jpg",
+   "album": {
+    "id": "72177720336408231",
+    "title": "KubeCon + CloudNativeCon North America 2026"
+   }
+  }
+ ],
+ [
+  3,
+  "https://example.invalid/video.mp4",
+  {
+   "id": 1,
+   "title": "KC+CNC_NA_2026_TOP12_002",
+   "media": "video",
+   "owner": {
+    "nsid": "143247548@N03",
+    "path_alias": "143247548@N03",
+    "username": "Cloud Native Computing Foundation"
+   },
+   "width": 1024,
+   "height": 683,
+   "url": "https://live.staticflickr.com/65535/55650110745_92c3f3e1c0_b.jpg",
+   "album": {
+    "id": "72177720336408231",
+    "title": "KubeCon + CloudNativeCon North America 2026"
+   }
+  }
+ ]
+]
